@@ -1,4 +1,5 @@
 
+from functools import reduce 
 # Load in test and input 
 with open("test.txt", "r", encoding="utf-8") as f:
     test = [x.strip() for x in f.read().split(',')]
@@ -9,6 +10,7 @@ with open("input.txt", "r", encoding="utf-8") as f:
 # Code
 def normalize_range(rangeString): 
 
+
     #input '11-22', output 11, 22 (integers)
     #input '552-1005', output 1000, 1005 (integers)
     #inut '414256-608125', output 414256, 608125 
@@ -17,8 +19,6 @@ def normalize_range(rangeString):
 
     bottom_length = len(split_arr[0])
     top_length = len(split_arr[1])
-
-    print(top_length - bottom_length)
 
     bottom = split_arr[0]
     top = split_arr[1]
@@ -31,38 +31,85 @@ def normalize_range(rangeString):
 
     return bottom, top
 
-def validSRange(bottom, top): 
+def validSRange(bottom, top): #should detect if there are no valid numbers. 
     
     #takes in input of a valid range where both numbers have the same even length e.g. '6985', '9999'
     #outputs the valid range of S such that numbers are of the form SS, e.g 70-99 [7070, 7171, ... 9999]
 
     bottomlen = len(bottom) #even
     toplen = len(top) #even
+    if(toplen != bottomlen): return 'Error, top and bottom aret the same' + top + bottom
 
     #Find minimum valid S from bottom
     min_valid_s = int(bottom[ : (bottomlen // 2)]) #first n/2 characters
-    bottom = int(bottom)
-    top = int(top)
+    currentValue = min_valid_s * (10 ** (bottomlen // 2)) + min_valid_s
 
-    while(True):
+    #print(min_valid_s)
+    while(currentValue < int(top)):
 
-        currentValue = min_valid_s * (10 ** (bottomlen // 2))
+        currentValue = min_valid_s * (10 ** (bottomlen // 2)) + min_valid_s
+        #print(currentValue)
 
-        if currentValue >= bottom and currentValue <= top:
+        if currentValue >= int(bottom) and currentValue <= int(top):
             break 
 
         min_valid_s += 1 
 
-    return min_valid_s
-
-
-
     #Find maximum valid S from top 
+    max_valid_s = int(top[ : (toplen // 2)]) #first n/2 characters
+    currentValue = max_valid_s * (10 ** (bottomlen // 2)) + max_valid_s
+
+    while(currentValue > int(bottom)):
+
+        currentValue = max_valid_s * (10 ** (toplen // 2)) + max_valid_s
+        
+        #print(currentValue, "hey")
+
+        if currentValue >= int(bottom) and currentValue <= int(top):
+            #print(currentValue, "hey")
+            break 
+
+        max_valid_s -=1
     
+    return min_valid_s, max_valid_s
 
+def rangeToArr(bottom, top):
 
+    if(len(str(bottom)) != len(str(top))):
+        return "Error in rangeToArr"
 
-# Testing 
-#print(test)
-#print(normalize_range('6985-10895'))
-print(validSRange('6985', '9999'))
+    n = len(str(bottom))
+    output = [] 
+
+    for val in range(bottom, top+1):
+        
+        number = val * (10 ** n) + val 
+        output.append(number)
+
+    return output
+
+def driver(arr):
+
+    total = 0
+    #iterate through array 
+    for idRange in arr:  #'123-156' 
+        
+        print("id range", idRange)
+        bottom, top = normalize_range(idRange)
+
+        if(int(bottom) > int(top)):
+            continue
+
+        min_valid_s, max_valid_s = validSRange(bottom, top)
+
+        if(min_valid_s > max_valid_s):
+            continue
+
+        arrOfInvalids = rangeToArr(min_valid_s, max_valid_s)
+        total += reduce(lambda x, y: x+y, arrOfInvalids)
+
+    return total 
+#Tests
+print("########## Tests ##########")
+print(driver(input))
+print("########## Tests ##########")
